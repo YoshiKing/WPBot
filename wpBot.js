@@ -1,10 +1,5 @@
 function onFormSubmit(e) {
 
-  // グループID
-  var GROUP_ID = '**********';
-  // アクセストークン
-  var ACCESS_TOKEN = '**********';
-
   // Items
   var items = getItems(e.response.getItemResponses());
 
@@ -12,37 +7,21 @@ function onFormSubmit(e) {
   var message = generateMessage(items);
 
   // オプション
-  var options = {
-    'method': 'POST',
-    'headers': {
-      'Content-type': 'application/json'
-    },
-    'payload': {
-      'access_token': ACCESS_TOKEN,
-      'formatting': 'MARKDOWN',
-      'message': message
-    }
-  }
-
-  // 投稿メッセージをログ出力
-  Logger.log(message);
+  var options = generateOptions(message);
 
   // リクエスト送信
-  var res = UrlFetchApp.fetch('https://graph.facebook.com/' + GROUP_ID + '/feed', options);
-
-  // 処理結果をログ出力
-  Logger.log(res);
+  var res = sendRequest(options);
 }
 
 /**
  * アイテムを取得
  * 
  * @param itemResponses
- * @return items
+ * @return ret
  */
 function getItems(itemResponses) {
-  // Items
-  var items = [3];
+  // retVal
+  var ret = [3];
 
   // 入力項目でループ
   for (var i = 0; i < itemResponses.length; i++) {
@@ -50,15 +29,15 @@ function getItems(itemResponses) {
     switch (itemResponses[i].getItem().getTitle()) {
       // メッセージ1の場合
       case 'メッセージ1':
-        items[0] = itemResponses[i].getResponse();
+        ret[0] = itemResponses[i].getResponse();
         break;
       // メッセージ2の場合
       case 'メッセージ2':
-        items[1] = itemResponses[i].getResponse();
+        ret[1] = itemResponses[i].getResponse();
         break;
       // プルダウン1の場合
       case 'プルダウン1':
-        items[2] = itemResponses[i].getResponse();
+        ret[2] = itemResponses[i].getResponse();
         break;
       // 上記以外の場合
       default:
@@ -66,53 +45,54 @@ function getItems(itemResponses) {
     }
   }
   // return
-  return items;
+  return ret;
 }
 
 /**
  * メッセージを生成
  * 
  * @param items
- * @return message
+ * @return ret
  */
 function generateMessage(items) {
-  // message
-  var message = '';
+  // retVal
+  var ret = '';
 
-  message += 'メッセージ1 : ';
-  message += '``` ';
-  message += items[0];
-  message += ' ```';
-  message += '\r\n';
-  message += 'メッセージ2 : ';
-  message += '``` ';
-  message += items[1];
-  message += ' ```';
-  message += "\r\n";
-  message += 'プルダウン1 : ';
-  message += '``` ';
-  message += items[2];
-  message += ' ```';
-  message += "\r\n";
-  message += '#';
-  message += generateManagementID();
-  message += "\r\n";
-  message += "\r\n";
-  message += '#';
-  message += items[2];
+  ret += 'メッセージ1 : ';
+  ret += '``` ';
+  ret += items[0];
+  ret += ' ```';
+  ret += '\r\n';
+  ret += 'メッセージ2 : ';
+  ret += '``` ';
+  ret += items[1];
+  ret += ' ```';
+  ret += "\r\n";
+  ret += 'プルダウン1 : ';
+  ret += '``` ';
+  ret += items[2];
+  ret += ' ```';
+  ret += "\r\n";
+  ret += '#';
+  ret += generateManagementID();
+  ret += "\r\n";
+  ret += "\r\n";
+  ret += '#';
+  ret += items[2];
+
+  // メッセージをログ出力
+  Logger.log(ret);
 
   // return
-  return message;
+  return ret;
 }
 
 /**
  * 管理IDを発行
  * 
- * @return manageMentID
+ * @return managementID
  */
 function generateManagementID() {
-  // manageMentID
-  var manageMentID = '';
 
   // 現在日時を取得
   var date_obj = new Date();
@@ -120,9 +100,6 @@ function generateManagementID() {
   var timeStamp = Utilities.formatDate(date_obj, 'Asia/Tokyo', 'yyyyMMddHHmmsss');
   // ３６進数に変換
   var base36 = Number(timeStamp).toString(36);
-  // 0埋め
-  manageMentID = ('0000000000' + base36).slice(-10);
-
-  // return
-  return manageMentID;
+  // 0埋めして返却
+  return ('0000000000' + base36).slice(-10);
 }
